@@ -20,6 +20,9 @@ import noisereduce as nr
 from pathlib import Path
 # faster-whisper
 from faster_whisper import WhisperModel
+
+from pathlib import Path
+from django.http import FileResponse, Http404
 # Create your views here.
 def index(request):
     return HttpResponse("Communication start")
@@ -373,4 +376,13 @@ def s2tExecute(request):
     # print(" -", out_json)
 
 
-s2tExecute(3)
+# s2tExecute(3)
+
+
+
+def download_file(request):
+    APP_DIR = Path(__file__).resolve().parent
+    AUDIO_PATH = APP_DIR / "sample" / "recording.m4a"
+    if not AUDIO_PATH.exists():
+        raise Http404("파일이 없습니다")
+    return FileResponse(open(AUDIO_PATH, "rb"), as_attachment=True, filename="recording.m4a")
