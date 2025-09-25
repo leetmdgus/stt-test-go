@@ -8,7 +8,7 @@ import io
 import json
 from dataclasses import dataclass, asdict
 from typing import List, Optional, Tuple
-
+from django.views.decorators.csrf import csrf_exempt
 from tqdm.auto import tqdm
 
 import numpy as np
@@ -379,10 +379,25 @@ def s2tExecute(request):
 # s2tExecute(3)
 
 
-
-def download_file(request):
+@csrf_exempt
+def transmit_file(request):
+    print("DDD")
     APP_DIR = Path(__file__).resolve().parent
-    AUDIO_PATH = APP_DIR / "sample" / "recording.m4a"
+    AUDIO_PATH = APP_DIR / "sample" / "recording33.m4a"
     if not AUDIO_PATH.exists():
         raise Http404("파일이 없습니다")
-    return FileResponse(open(AUDIO_PATH, "rb"), as_attachment=True, filename="recording.m4a")
+    return FileResponse(open(AUDIO_PATH, "rb"), as_attachment=True, filename="recording33.m4a")
+
+
+@csrf_exempt
+def download_file(request):
+    if request.method == "POST" and request.FILES.get("file"):
+        f = request.FILES["file"]
+        save_dir = Path(__file__).resolve().parent / "sample"
+        save_dir.mkdir(exist_ok=True)
+        save_path = save_dir / f.name
+        with open(save_path, "wb+") as dest:
+            for chunk in f.chunks():
+                dest.write(chunk)
+        return JsonResponse({"message": f"업로드 성공: {f.name}"})
+    return JsonResponse({"error": "파일이 없음"}, status=400)

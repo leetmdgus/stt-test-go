@@ -25,12 +25,19 @@ SECRET_KEY = "django-insecure--*3f2j!k+z#gt+ivi6v4syr=jjqvz)-@4g(inuh!v8f&&f_s03
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# settings.py
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']  # 개발용
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+]
+
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    "corsheaders",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -40,6 +47,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -50,7 +58,9 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "config.urls"
-
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+]
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
