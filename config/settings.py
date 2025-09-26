@@ -11,10 +11,11 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-
+import environ
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+env = environ.Env()
+environ.Env.read_env(Path(__file__).resolve().parent/'.env')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -26,7 +27,7 @@ SECRET_KEY = "django-insecure--*3f2j!k+z#gt+ivi6v4syr=jjqvz)-@4g(inuh!v8f&&f_s03
 DEBUG = True
 
 # settings.py
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']  # 개발용
+ALLOWED_HOSTS = [env('STATIC_IP'),'localhost', '127.0.0.1']  # 개발용
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
