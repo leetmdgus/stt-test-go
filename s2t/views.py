@@ -25,6 +25,7 @@ from pathlib import Path
 from django.http import FileResponse, Http404
 from . import parse
 from . import parseopen
+from .models import UserInfo, OpenAITxt, Checklist
 # Create your views here.
 @api_view(['GET'])
 def index(request):
@@ -454,7 +455,13 @@ def counseling_start(request):
     sex = request.data.get('sex')
     tendency = request.data.get('tendency')
     latest_information = request.data.get('meta_data')
-    
+    obj = UserInfo(
+            name=name,
+            sex=sex,
+            tendency=tendency,
+            latest_information=latest_information
+        )
+    obj.save()
     print("이름  : ", name)
     print("성별  : ", sex)
     print("성향  : ", tendency)
@@ -488,7 +495,11 @@ def counseling_start(request):
     
     content = print("Openai text", resp.text)
     print("저장경로 : ", used_path)
-    
+    obj1 = OpenAITxt(
+            name=name,
+            openai_txt=content,
+        )
+    obj1.save()
     raw = request.data.get("data")
     
     counseling_data = json.loads(raw)
@@ -508,6 +519,12 @@ def counseling_start(request):
                 tempt['score'] = int(counseling_data[i][j][-2])
                 tempt['answer'] = counseling_data[i][j][:-3]
                 json_data['social'].append(tempt)
+                obj2 = Checklist(
+                        name=name,
+                        q_category = '정신',
+                        question = tempt['question'],
+                        answer = tempt['answer'])
+                obj2.save()
                 
         if i == 'body':
             for j in counseling_data[i]:
@@ -516,6 +533,12 @@ def counseling_start(request):
                 tempt['score'] = int(counseling_data[i][j][-2])
                 tempt['answer'] = counseling_data[i][j][:-3]
                 json_data['physical'].append(tempt)
+                obj2 = Checklist(
+                        name=name,
+                        q_category = '정신',
+                        question = tempt['question'],
+                        answer = tempt['answer'])
+                obj2.save()
                 
         if i == 'mental':
             for j in counseling_data[i]:
@@ -524,11 +547,22 @@ def counseling_start(request):
                 tempt['score'] = int(counseling_data[i][j][-2])
                 tempt['answer'] = counseling_data[i][j][:-3]
                 json_data['mental'].append(tempt)
-                
+                obj2 = Checklist(
+                        name=name,
+                        q_category = '정신',
+                        question = tempt['question'],
+                        answer = tempt['answer'])
+                obj2.save()
+                                
     print("society",json_data['social'])
     print("body",json_data['physical'])
     print("mental",json_data['mental'])
-    
+    obj2 = Checklist(
+            name=name,
+            q_category = '',
+            question = '',
+            answer = '')
+    obj2.save()
     print('content : ', content)
     print('txt', json_data)
     if content == None:
@@ -541,7 +575,9 @@ def counseling_start(request):
     
     
     
-    
+        
+        
+        
 @csrf_exempt
 def llm_execute(context, text):
     rtr = parseopen.generate_report(context, text)
