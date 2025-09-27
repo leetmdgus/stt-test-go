@@ -506,7 +506,7 @@ def counseling_start(request):
                 tempt = dict()
                 tempt['question'] = j
                 tempt['score'] = int(counseling_data[i][j][-2])
-                tempt['answer'] = counseling_data[i][j][:3]
+                tempt['answer'] = counseling_data[i][j][:-3]
                 json_data['social'].append(tempt)
                 
         if i == 'body':
@@ -514,7 +514,7 @@ def counseling_start(request):
                 tempt = dict()
                 tempt['question'] = j
                 tempt['score'] = int(counseling_data[i][j][-2])
-                tempt['answer'] = counseling_data[i][j][:3]
+                tempt['answer'] = counseling_data[i][j][:-3]
                 json_data['physical'].append(tempt)
                 
         if i == 'mental':
@@ -522,7 +522,7 @@ def counseling_start(request):
                 tempt = dict()
                 tempt['question'] = j
                 tempt['score'] = int(counseling_data[i][j][-2])
-                tempt['answer'] = counseling_data[i][j][:3]
+                tempt['answer'] = counseling_data[i][j][:-3]
                 json_data['mental'].append(tempt)
                 
     print("society",json_data['social'])
