@@ -453,6 +453,7 @@ count = 0
 def counseling_start(request):
     from openai import OpenAI
     import os
+    global count
     count += 1
     name = request.data.get('name')
     sex = request.data.get('sex')
