@@ -491,6 +491,7 @@ def counseling_start(request):
         )
     obj.save()
     f = request.FILES["file"]      
+    print("이거임",f)
     content = ''
     if not f:
         # 파일이 없으면 빈 문자열 저장
