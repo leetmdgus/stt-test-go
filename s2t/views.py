@@ -496,6 +496,7 @@ def counseling_start(request):
     dummy_d = ['society', 'body', 'mental']
     counseling_data = request.data.get('data')
     print("상담 데이터", counseling_data)
+    print("타입" , type(counseling_data))
     for i in dummy_d:
         if i == 'society':
             print(i)
