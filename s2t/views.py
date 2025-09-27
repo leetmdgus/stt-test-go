@@ -323,8 +323,8 @@ def s2tExecute(audio_name):
     try:
         if HAS_WEBRTCVAD:
             spans = vad_collect_webrtc(sample_rate=sr, audio_float=audio,
-                                    aggressiveness=2, frame_ms=30, padding_ms=300,
-                                    min_speech_ms=300, max_segment_s=30.0)
+                                    aggressiveness=2, frame_ms=30, padding_ms=30,
+                                    min_speech_ms=30, max_segment_s=30.0)
         else:
             raise RuntimeError("webrtcvad not available")
     except Exception as e:
