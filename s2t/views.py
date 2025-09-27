@@ -120,11 +120,12 @@ def vad_collect_webrtc(sample_rate: int,
                        padding_ms: int = 300,
                        min_speech_ms: int = 300,
                        max_segment_s: float = 30.0) -> List[Tuple[float, float]]:
-    """Return list of (start_s, end_s) using WebRTC VAD."""
     if not HAS_WEBRTCVAD:
         raise RuntimeError("webrtcvad is not available")
     vad = webrtcvad.Vad(aggressiveness)
     pcm16 = (audio_float * 32767.0).astype(np.int16).tobytes()
+
+    expected_len = int(sample_rate * (frame_ms / 1000.0) * 2)  # 16-bit => *2
     frames = list(frame_generator(frame_ms, pcm16, sample_rate))
     n_frames = len(frames)
     samples_per_frame = int(sample_rate * (frame_ms / 1000.0))
@@ -137,7 +138,16 @@ def vad_collect_webrtc(sample_rate: int,
     segs = []
 
     for i, frame in enumerate(frames):
-        is_speech = vad.is_speech(frame, sample_rate)
+        # 🔧 마지막 불완전 프레임은 패스 (webrtcvad는 10/20/30ms 정확 길이만 허용)
+        if len(frame) != expected_len:
+            break  # 또는 `continue`로 무시해도 됨
+
+        try:
+            is_speech = vad.is_speech(frame, sample_rate)
+        except Exception:
+            # 방어적으로 한 번 더 스킵
+            continue
+
         ring[ring_i] = is_speech
         ring_i = (ring_i + 1) % pad_frames
         voiced = sum(ring) > (pad_frames // 2)
@@ -160,6 +170,7 @@ def vad_collect_webrtc(sample_rate: int,
                 else:
                     segs.append((start_s, end_s))
 
+    # tail 처리
     if state == "speech" and cur_start is not None:
         end_i = n_frames - 1
         start_s = (cur_start * samples_per_frame) / sample_rate
@@ -173,6 +184,7 @@ def vad_collect_webrtc(sample_rate: int,
             else:
                 segs.append((start_s, end_s))
     return segs
+
 
 # ------------ Silero VAD (fallback) ------------
 def vad_collect_silero(audio_float: np.ndarray,
