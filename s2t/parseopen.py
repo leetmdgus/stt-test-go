@@ -1,25 +1,154 @@
-# file: run_openai_api.py
-from openai import OpenAI
-import os
+import json
+import openai
 
-def main(txt_path):
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-    prompt = "지식 증류(distillation)를 한국어로 쉽게 설명해줘."
-
-    resp = client.chat.completions.create(
-        model="gpt-4o-mini",   # 원하는 모델명 (ex: gpt-3.5-turbo, gpt-4o-mini 등)
-        messages=[
-            {"role": "system", "content": "당신은 친절한 AI 어시스턴트입니다."},
-            {"role": "user", "content": prompt}
+# json 데이터
+json_data = {
+    "social": [
+            {
+                "question": "가족 구성원으로부터 부양(지원) 받고 있나요? ",
+                "answer": "동거 (일반)",
+                "score": 0,
+            },
+            {
+                "question": "가족 구성원으로부터 정서적 지지를 받고 있나요?",
+                "answer": "예",
+                "score": 1,
+            }
+        
         ],
-        max_tokens=200,
-        temperature=0.7,
-        top_p=0.9
+    "physical": [
+            {
+                "question": "최근 1주일간 평소보다 더 피곤하거나 힘든 적이 있나요?",
+                "answer": "예",
+                "score": 2,
+            },
+            {
+                "question": "최근 1주일간 평소보다 더 아프거나 다친 적이 있나요?",
+                "answer": "아니오",
+                "score": 1,
+            }
+    ],
+    "mental": [
+            {
+                "question": "최근 1주일간 우울하거나 슬펐던 적이 있나요?",
+                "answer": "예",
+                "score": 2,
+            },
+            {
+                "question": "최근 1주일간 불안하거나 초조했던 적이 있나요?",
+                "answer": "예",
+                "score": 2,
+            }
+    ]
+}
+
+stt_data = """
+    안녕하세요. 저는 70세 여성입니다. 최근에 가족들과 함께 지내고 있습니다. 가족들로부터 정서적인 지지를 받고 있어서 기쁩니다. 하지만 최근 1주일간 평소보다 더 피곤하고 힘든 적이 있었고, 우울하거나 슬펐던 적도 있었습니다. 다행히도 아프거나 다친 적은 없었고, 불안하거나 초조했던 적도 있었습니다.
+    그러신가요? 어르신, 요즘 많이 힘드시죠? 그래도 가족들과 함께 지내시면서 정서적인 지지를 받고 계신다니 다행입니다. 혹시 더 도움이 필요하시거나 상담이 필요하시면 언제든지 말씀해 주세요. 저희가 도와드리겠습니다.
+    고마워요. 가족들과 함께 지내는 것이 큰 힘이 됩니다. 하지만 가끔은 피곤하고 우울한 기분이 들 때가 있어요. 그래서 상담이 필요할 때가 있으면 꼭 말씀드릴게요.
+    네, 언제든지 말씀해 주세요. 저희가 항상 여기서 도와드리겠습니다. 건강 잘 챙기시고, 좋은 하루 보내세요.
+    네, 감사합니다. 좋은 하루 되세요.
+    그럼, 오늘은 어떤 하루를 보냈나요?
+    오늘은 가족들과 함께 시간을 보내고, 산책도 했어요. 날씨가 좋아서 기분이 좋았습니다.
+    그렇군요! 가족들과 함께 시간을 보내는 것은 정말 소중한 일이죠.
+    네, 맞아요. 가족들과 함께하는 시간이 제일 행복한 순간이에요.
+"""
+
+# 시스템 프롬프트 정의
+SYSTEM_PROMPT = """당신은 훌륭한 **생활지원사 문서 정리 도우미**입니다.  
+입력으로는 두 가지 데이터가 주어집니다:  
+1) 노인과의 상담 대화(STT 변환 텍스트)  
+2) 상담 체크리스트(JSON, question-answer-score 구조)  
+
+당신의 임무는 이 데이터를 기반으로 **공식 보고서 문서**를 작성하는 것입니다.  
+출력은 반드시 아래 지침과 형식을 따르세요.
+
+[역할 및 원칙]
+- 당신은 사회복지사와 생활지원사가 참고할 수 있는 **전문 보고서 작성 보조자**입니다.
+- 제공된 데이터(STT, JSON)만 바탕으로 작성합니다. **추측, 창작, 누락 금지**.
+- 문서는 **객관적이고 공식적인 톤**을 유지합니다.
+- 중복 표현, 불필요한 감정적 수식어를 피하고, 핵심만 간결하게 정리합니다.
+- 답변의 사실성을 유지하며, "예/아니오" 같은 표현도 그대로 반영합니다.
+
+[보고서 출력 형식]
+
+### 1. 기본 정보
+- 상담 대상: (성별/연령, STT에서 확인 가능할 경우)  
+- 상담 일시: (입력에 없으면 '기록 없음')  
+- 생활지원사: (입력에 없으면 '기록 없음')  
+
+**대화 요약:**  
+STT 텍스트를 2~4문장으로 요약.  
+핵심 생활상황, 긍정/부정 요소를 간단히 정리.
+
+---
+
+### 2. 상태 평가
+JSON의 영역별 데이터를 기반으로, 신체(Physical)·정서/심리(Mental)·사회(Social) 상태를 항목별 bullet로 정리.  
+- **신체:** …  
+- **정서/심리:** …  
+- **사회:** …
+
+---
+
+### 3. 체크리스트 요약
+JSON 데이터를 표로 정리.  
+
+| 영역 | 질문 | 답변 | 점수 | 비고 |
+|------|------|------|------|------|
+| social | … | … | … | STT 기반 보충 메모 |
+| physical | … | … | … | STT 기반 보충 메모 |
+| mental | … | … | … | STT 기반 보충 메모 |
+
+---
+
+### 4. 종합 의견 및 권장 사항
+STT와 JSON 데이터를 종합해, 생활지원사/사회복지사에게 도움이 되는 **행동 제안 2~4개**를 bullet로 작성.  
+- 예: 가족 교류 유지, 상담 필요 시 연계, 정기 검진 권장 등
+
+---
+
+[스타일 가이드]
+- Markdown 형식 사용
+- 간결한 문장 (짧고 명확)
+- “~확인됨”, “~필요함” 같은 **보고서 어투** 사용
+- 데이터 왜곡 금지
+
+---
+
+이 지침을 모든 출력에서 반드시 준수해야 합니다.
+"""
+
+# OpenAI 클라이언트 초기화
+client = openai.OpenAI()
+
+def generate_report(json_data: dict, stt_data: str) -> str:
+    """
+    JSON 체크리스트 + STT 텍스트를 바탕으로 보고서를 생성하는 함수
+    """
+    user_prompt = f"""
+    [체크리스트 JSON 데이터]
+    {json.dumps(json_data, ensure_ascii=False, indent=2)}
+
+    [상담 대화 STT 데이터]
+    {stt_data}
+    """
+
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": user_prompt}
+        ],
+        temperature=0.3  # 안정적 출력 위해 낮게 설정
     )
 
-    # 답변만 출력 (질문 제외)
-    print(resp.choices[0].message.content)
+    return response.choices[0].message.content
 
+
+
+# ✅ 사용 예시
 if __name__ == "__main__":
-    main()
+    report = generate_report(json_data, stt_data)
+    print(report)

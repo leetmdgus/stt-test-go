@@ -488,38 +488,51 @@ def counseling_start(request):
     
     content = print("Openai text", resp.text)
     print("저장경로 : ", used_path)
-    society = '사회 영역:'
-    body = '신체 영역:'
-    mental = '정신 영역:'
-    
-    
+
+   
+    json_data = dict()
+    json_data['social'] = []
+    json_data['physical'] = []
+    json_data['mental'] = []
     dummy_d = ['society', 'body', 'mental']
     counseling_data = request.data.get('data')
     print("상담 데이터", counseling_data)
     print("타입" , type(counseling_data))
     for i in dummy_d:
         if i == 'society':
-            print(i)
             for j in counseling_data[i]:
-                society += j + '\n'
-                society += counseling_data[i][j] + '\n'
+                tempt = dict()
+                tempt['question'] = j
+                tempt['score'] = int(counseling_data[i][j][-2])
+                tempt['answer'] = counseling_data[i][j][:3]
+                json_data['social'].append(tempt)
+                
         if i == 'body':
             for j in counseling_data[i]:
-                body += j + '\n'
-                body += counseling_data[i][j] + '\n'
+                tempt = dict()
+                tempt['question'] = j
+                tempt['score'] = int(counseling_data[i][j][-2])
+                tempt['answer'] = counseling_data[i][j][:3]
+                json_data['physical'].append(tempt)
+                
         if i == 'mental':
             for j in counseling_data[i]:
-                mental += j + '\n'
-                mental += counseling_data[i][j] + '\n'
-    print("society",society)
-    print("body",body)
-    print("mental",mental)
-    txt = society + body + mental
+                tempt = dict()
+                tempt['question'] = j
+                tempt['score'] = int(counseling_data[i][j][-2])
+                tempt['answer'] = counseling_data[i][j][:3]
+                json_data['mental'].append(tempt)
+                
+    print("society",json_data['social'])
+    print("body",json_data['physical'])
+    print("mental",json_data['mental'])
+    
     print('content : ', content)
-    print('txt', txt)
-    llm_text = llm_execute(content, txt)
+    print('txt', json_data)
+    
+    llm_text = llm_execute(json_data, content)
     print(llm_text)
-    return HttpResponse(200)
+    return JsonResponse({"message": llm_text})
     
     
     
