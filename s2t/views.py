@@ -522,7 +522,7 @@ def counseling_start(request):
                 json_data['social'].append(tempt)
                 obj2 = Checklist(
                         name=name,
-                        q_category = '정신',
+                        q_category = '사회',
                         question = tempt['question'],
                         answer = tempt['answer'])
                 obj2.save()
@@ -536,7 +536,7 @@ def counseling_start(request):
                 json_data['physical'].append(tempt)
                 obj2 = Checklist(
                         name=name,
-                        q_category = '정신',
+                        q_category = '신체',
                         question = tempt['question'],
                         answer = tempt['answer'])
                 obj2.save()
