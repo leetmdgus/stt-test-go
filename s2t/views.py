@@ -482,13 +482,6 @@ def counseling_start(request):
     #     with open(save_path, "wb+") as dest:
     #         for chunk in f.chunks():
     #             dest.write(chunk)
-    f = request.FILES["file"]      
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    save_dir = Path(__file__).resolve().parent / "sample"
-    used_path = save_dir / f'{str(count)}_{f.name}'
-    with open(used_path, "wb+") as dest:
-            for chunk in f.chunks():
-                dest.write(chunk)
     obj = M_UserInfo(
             m_name = str(count),
             name=name,
@@ -497,17 +490,29 @@ def counseling_start(request):
             latest_information=latest_information
         )
     obj.save()
-    
-    with open(used_path, "rb") as f:
-        resp = client.audio.transcriptions.create(
-            model="gpt-4o-transcribe",  # 또는 whisper-1, gpt-4o-mini-transcribe
-            file=f,
-            language="ko"
-        )
-    
-    content = print("Openai text", resp.text)
+    f = request.FILES["file"]      
+    content = ''
+    if not f:
+        # 파일이 없으면 빈 문자열 저장
+        content = ""
+    else: 
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        save_dir = Path(__file__).resolve().parent / "sample"
+        used_path = save_dir / f'{str(count)}_{f.name}'
+        with open(used_path, "wb+") as dest:
+                for chunk in f.chunks():
+                    dest.write(chunk)
+        
+        
+        with open(used_path, "rb") as f:
+            resp = client.audio.transcriptions.create(
+                model="gpt-4o-transcribe",  # 또는 whisper-1, gpt-4o-mini-transcribe
+                file=f,
+                language="ko"
+            )
+        
+        content = print("Openai text", resp.text)
     print("저장경로 : ", used_path)
-    content = resp.text
     obj1 = OpenAITxt(
             name=name,
             openai_txt=content,
