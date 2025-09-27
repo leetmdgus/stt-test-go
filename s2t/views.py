@@ -498,6 +498,7 @@ def counseling_start(request):
     print("상담 데이터", counseling_data)
     for i in dummy_d:
         if i == 'society':
+            print(i)
             for j in counseling_data[i]:
                 society += j + '\n'
                 society += counseling_data[i][j] + '\n'
