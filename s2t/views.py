@@ -495,6 +495,7 @@ def counseling_start(request):
     
     content = print("Openai text", resp.text)
     print("저장경로 : ", used_path)
+    content = resp.text
     obj1 = OpenAITxt(
             name=name,
             openai_txt=content,
