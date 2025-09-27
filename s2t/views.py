@@ -413,15 +413,15 @@ def download_file(request):
 @csrf_exempt
 @api_view(['POST'])
 def counseling_start(request):
-    # name = request.data.get('name')
-    # sex = request.data.get('sex')
-    # tendency = request.data.get('tendency')
-    # latest_information = request.data.get('meta_data')
+    name = request.data.get('name')
+    sex = request.data.get('sex')
+    tendency = request.data.get('tendency')
+    latest_information = request.data.get('meta_data')
     
-    # print("이름  : ", name)
-    # print("성별  : ", sex)
-    # print("성향  : ", tendency)
-    # print("최근 정보  : ", latest_information)
+    print("이름  : ", name)
+    print("성별  : ", sex)
+    print("성향  : ", tendency)
+    print("최근 정보  : ", latest_information)
     
     if request.method == "POST" and request.FILES.get("file"):
         f = request.FILES["file"]
@@ -443,30 +443,30 @@ def counseling_start(request):
         except Exception as e:
             print("에러 발생:", e)
     
-    # society = '사회 영역:'
-    # body = '신체 영역:'
-    # mental = '정신 영역:'
+    society = '사회 영역:'
+    body = '신체 영역:'
+    mental = '정신 영역:'
     
     
-    # dummy_d = ['society', 'body', 'mental']
-    # counseling_data = request.data.get('data')
-    # for i in dummy_d:
-    #     if i == 'society':
-    #         for j in counseling_data[i]:
-    #             society += j + '\n'
-    #             society += counseling_data[i][j] + '\n'
-    #     if i == 'body':
-    #         for j in counseling_data[i]:
-    #             body += j + '\n'
-    #             body += counseling_data[i][j] + '\n'
-    #     if i == 'mental':
-    #         for j in counseling_data[i]:
-    #             mental += j + '\n'
-    #             mental += counseling_data[i][j] + '\n'
-    # print("society",society)
-    # print("body",body)
-    # print("mental",mental)
-    # llm_text = s2tExecute(f.name)
+    dummy_d = ['society', 'body', 'mental']
+    counseling_data = request.data.get('data')
+    for i in dummy_d:
+        if i == 'society':
+            for j in counseling_data[i]:
+                society += j + '\n'
+                society += counseling_data[i][j] + '\n'
+        if i == 'body':
+            for j in counseling_data[i]:
+                body += j + '\n'
+                body += counseling_data[i][j] + '\n'
+        if i == 'mental':
+            for j in counseling_data[i]:
+                mental += j + '\n'
+                mental += counseling_data[i][j] + '\n'
+    print("society",society)
+    print("body",body)
+    print("mental",mental)
+    llm_text = s2tExecute(f.name)
     return HttpResponse(200)
     
     
