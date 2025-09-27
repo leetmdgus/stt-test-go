@@ -477,6 +477,8 @@ def counseling_start(request):
     with open(used_path, "wb+") as dest:
             for chunk in f.chunks():
                 dest.write(chunk)
+                
+    
     with open(used_path, "rb") as f:
         resp = client.audio.transcriptions.create(
             model="gpt-4o-transcribe",  # 또는 whisper-1, gpt-4o-mini-transcribe
@@ -493,6 +495,7 @@ def counseling_start(request):
     
     dummy_d = ['society', 'body', 'mental']
     counseling_data = request.data.get('data')
+    print("상담 데이터", counseling_data)
     for i in dummy_d:
         if i == 'society':
             for j in counseling_data[i]:
