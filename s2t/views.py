@@ -495,7 +495,7 @@ def counseling_start(request):
     content = ''
     if f.size < 1000:
         # 파일이 없으면 빈 문자열 저장
-        content = ""
+        content = "녹음파일 없음"
     else: 
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         save_dir = Path(__file__).resolve().parent / "sample"
@@ -513,7 +513,9 @@ def counseling_start(request):
             )
         
         content = print("Openai text", resp.text)
+        print("내용", content)
         print("저장경로 : ", used_path)
+        
     obj1 = OpenAITxt(
             name=name,
             openai_txt=content,
