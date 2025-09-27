@@ -293,107 +293,107 @@ def check3():
     print("ffmpeg:", shutil.which("ffmpeg"))
     print("ffprobe:", shutil.which("ffprobe"))
 
-@csrf_exempt
-def s2tExecute(audio_name):
-    print(audio_name, " 파일 실행 시작")
-    APP_DIR = Path(__file__).resolve().parent  # s2t/ 를 가리킴
-    AUDIO_PATH = APP_DIR / "sample" / "recording.m4a"  # s2t/sample/recording.m4a
-    # ========= User Configuration =========
-    #AUDIO_PATH   = "sample/recording.m4a"   # 입력 오디오 경로(.m4a 포함)
-    OUTDIR       = APP_DIR/"outputs"                 # 결과 저장 디렉토리
-    LANGUAGE     = "ko"                      # 'ko' or 'auto'
-    MODEL_SIZE   = "large-v3"                # faster-whisper model size
-    DIARIZE      = False                     # 화자 분리 사용 여부
-    SPEAKER_LABELS = "Senior,Worker"         # 화자 라벨(등장순서 매핑)
-    DOMAIN_TERMS = "복약, 낙상, 보행보조기, 일상생활수행능력, 통증, 활력징후, 식사, 수면, 배뇨, 상처"
+# @csrf_exempt
+# def s2tExecute(audio_name):
+#     print(audio_name, " 파일 실행 시작")
+#     APP_DIR = Path(__file__).resolve().parent  # s2t/ 를 가리킴
+#     AUDIO_PATH = APP_DIR / "sample" / "recording.m4a"  # s2t/sample/recording.m4a
+#     # ========= User Configuration =========
+#     #AUDIO_PATH   = "sample/recording.m4a"   # 입력 오디오 경로(.m4a 포함)
+#     OUTDIR       = APP_DIR/"outputs"                 # 결과 저장 디렉토리
+#     LANGUAGE     = "ko"                      # 'ko' or 'auto'
+#     MODEL_SIZE   = "large-v3"                # faster-whisper model size
+#     DIARIZE      = False                     # 화자 분리 사용 여부
+#     SPEAKER_LABELS = "Senior,Worker"         # 화자 라벨(등장순서 매핑)
+#     DOMAIN_TERMS = "복약, 낙상, 보행보조기, 일상생활수행능력, 통증, 활력징후, 식사, 수면, 배뇨, 상처"
 
-    # diarization을 사용할 경우, 아래처럼 환경변수(HF 토큰)를 설정해 주세요.
-    # import os
-    # os.environ['HUGGINGFACE_TOKEN'] = "hf_..."  # <- pyannote 사용 시 필요
-    # =====================================
-    print("initialization complete")
-    # ======== RUN PIPELINE ========
-    os.makedirs(OUTDIR, exist_ok=True)
+#     # diarization을 사용할 경우, 아래처럼 환경변수(HF 토큰)를 설정해 주세요.
+#     # import os
+#     # os.environ['HUGGINGFACE_TOKEN'] = "hf_..."  # <- pyannote 사용 시 필요
+#     # =====================================
+#     print("initialization complete")
+#     # ======== RUN PIPELINE ========
+#     os.makedirs(OUTDIR, exist_ok=True)
 
-    # 1) Load & preprocess
-    audio, sr = load_audio_ffmpeg(AUDIO_PATH, target_sr=16000)
-    audio = denoise(audio, sr)
+#     # 1) Load & preprocess
+#     audio, sr = load_audio_ffmpeg(AUDIO_PATH, target_sr=16000)
+#     audio = denoise(audio, sr)
 
-    # 2) VAD
-    try:
-        if HAS_WEBRTCVAD:
-            spans = vad_collect_webrtc(sample_rate=sr, audio_float=audio,
-                                    aggressiveness=2, frame_ms=30, padding_ms=30,
-                                    min_speech_ms=30, max_segment_s=30.0)
-        else:
-            raise RuntimeError("webrtcvad not available")
-    except Exception as e:
-        print(f"[VAD] Falling back to Silero: {e}")
-        spans = vad_collect_silero(audio_float=audio, sr=sr,
-                                min_speech_ms=300, max_segment_s=30.0)
+#     # 2) VAD
+#     try:
+#         if HAS_WEBRTCVAD:
+#             spans = vad_collect_webrtc(sample_rate=sr, audio_float=audio,
+#                                     aggressiveness=2, frame_ms=30, padding_ms=30,
+#                                     min_speech_ms=30, max_segment_s=30.0)
+#         else:
+#             raise RuntimeError("webrtcvad not available")
+#     except Exception as e:
+#         print(f"[VAD] Falling back to Silero: {e}")
+#         spans = vad_collect_silero(audio_float=audio, sr=sr,
+#                                 min_speech_ms=300, max_segment_s=30.0)
 
-    if not spans:
-        raise RuntimeError("No speech detected.")
+#     if not spans:
+#         raise RuntimeError("No speech detected.")
 
-    print("아직 괜찮음1")
+#     print("아직 괜찮음1")
 
-    # 3) STT
-    language = None if (LANGUAGE or '').lower() == 'auto' else LANGUAGE
-    initial_prompt = "다음은 노인 돌봄 상담 대화의 전사입니다. 전문 용어 예시: " + DOMAIN_TERMS
+#     # 3) STT
+#     language = None if (LANGUAGE or '').lower() == 'auto' else LANGUAGE
+#     initial_prompt = "다음은 노인 돌봄 상담 대화의 전사입니다. 전문 용어 예시: " + DOMAIN_TERMS
 
-    # compute_type = "float16" if torch_cuda_available() else "int8"
-    compute_type = "int8"   # 안전 모드 고정
+#     # compute_type = "float16" if torch_cuda_available() else "int8"
+#     compute_type = "int8"   # 안전 모드 고정
 
-    stt_segments = transcribe_with_whisper(audio=audio, sr=sr, speech_spans=spans,
-                                        model_size=MODEL_SIZE, language=language,
-                                        initial_prompt=initial_prompt,
-                                        compute_type=compute_type)
-    print("아직 괜찮음2")
+#     stt_segments = transcribe_with_whisper(audio=audio, sr=sr, speech_spans=spans,
+#                                         model_size=MODEL_SIZE, language=language,
+#                                         initial_prompt=initial_prompt,
+#                                         compute_type=compute_type)
+#     print("아직 괜찮음2")
 
-    # 4) Diarization (optional)
-    diar_turns = []
-    spk_map = None
-    if DIARIZE and DIAR_ENABLED:
-        diar_turns = run_diarization(AUDIO_PATH)
-        stt_segments = assign_speakers_to_segments(stt_segments, diar_turns)
-        # Map raw speaker IDs to user-friendly labels by first-appearance order
-        raw_labels = [t[2] for t in diar_turns]
-        uniq = []
-        for x in raw_labels:
-            if x not in uniq:
-                uniq.append(x)
-        desired = [x.strip() for x in (SPEAKER_LABELS or "").split(",")]
-        spk_map = {raw: (desired[i] if i < len(desired) else raw) for i, raw in enumerate(uniq)}
-        for seg in stt_segments:
-            if seg.speaker in (spk_map or {}):
-                seg.speaker = spk_map[seg.speaker]
+#     # 4) Diarization (optional)
+#     diar_turns = []
+#     spk_map = None
+#     if DIARIZE and DIAR_ENABLED:
+#         diar_turns = run_diarization(AUDIO_PATH)
+#         stt_segments = assign_speakers_to_segments(stt_segments, diar_turns)
+#         # Map raw speaker IDs to user-friendly labels by first-appearance order
+#         raw_labels = [t[2] for t in diar_turns]
+#         uniq = []
+#         for x in raw_labels:
+#             if x not in uniq:
+#                 uniq.append(x)
+#         desired = [x.strip() for x in (SPEAKER_LABELS or "").split(",")]
+#         spk_map = {raw: (desired[i] if i < len(desired) else raw) for i, raw in enumerate(uniq)}
+#         for seg in stt_segments:
+#             if seg.speaker in (spk_map or {}):
+#                 seg.speaker = spk_map[seg.speaker]
                 
-    print("아직 괜찮음3")
+#     print("아직 괜찮음3")
 
-    # 5) Save outputs
-    base = Path(AUDIO_PATH).stem
-    out_txt  = str(Path(OUTDIR) / f"{base}_2nd.txt")
-    out_srt  = str(Path(OUTDIR) / f"{base}_2nd.srt")
-    # out_json = str(Path(OUTDIR) / f"{base}_2nd.json")
+#     # 5) Save outputs
+#     base = Path(AUDIO_PATH).stem
+#     out_txt  = str(Path(OUTDIR) / f"{base}_2nd.txt")
+#     out_srt  = str(Path(OUTDIR) / f"{base}_2nd.srt")
+#     # out_json = str(Path(OUTDIR) / f"{base}_2nd.json")
 
-    meta = {
-        "audio": AUDIO_PATH,
-        "sample_rate": sr,
-        "language_hint": language or "auto",
-        "model": MODEL_SIZE,
-        "diarization": bool(diar_turns),
-        "speaker_map": spk_map,
-    }
+#     meta = {
+#         "audio": AUDIO_PATH,
+#         "sample_rate": sr,
+#         "language_hint": language or "auto",
+#         "model": MODEL_SIZE,
+#         "diarization": bool(diar_turns),
+#         "speaker_map": spk_map,
+#     }
 
-    write_txt(stt_segments, out_txt)
-    write_srt(stt_segments, out_srt)
-    # write_json(stt_segments, out_json, meta=meta)
+#     write_txt(stt_segments, out_txt)
+#     write_srt(stt_segments, out_srt)
+#     # write_json(stt_segments, out_json, meta=meta)
 
-    print("Saved:")
-    print(" -", out_txt)
-    print(" -", out_srt)
-    # print(" -", out_json)
-    return out_txt
+#     print("Saved:")
+#     print(" -", out_txt)
+#     print(" -", out_srt)
+#     # print(" -", out_json)
+#     return out_txt
 
 
 # s2tExecute(3)
@@ -444,19 +444,9 @@ def counseling_start(request):
         with open(save_path, "wb+") as dest:
             for chunk in f.chunks():
                 dest.write(chunk)
-        print("download complete")
-        print("파일명 : ", f.name)
-        rtr = s2tExecute(f.name) # txt파일 경로가 옴
-        print(rtr)
-        try:
-            with open(rtr, "r", encoding="utf-8") as f:
-                content = f.read()
-                print(content)
-        except FileNotFoundError:
-            print("파일을 찾을 수 없습니다:", rtr)
-        except Exception as e:
-            print("에러 발생:", e)
-    
+    print("저장경로 : ", save_path)
+    content = _azure_stt(save_path, language=request.POST.get("lang", "ko-KR"))
+    print(content)
     society = '사회 영역:'
     body = '신체 영역:'
     mental = '정신 영역:'
@@ -480,20 +470,82 @@ def counseling_start(request):
     print("society",society)
     print("body",body)
     print("mental",mental)
-    llm_text = llm_execute(f.name)
+    txt = society + body + mental
+    print('content : ', content)
+    print('txt', txt)
+    llm_text = llm_execute(content, txt)
+    print(llm_text)
     return HttpResponse(200)
     
     
     
     
 @csrf_exempt
-def llm_execute(txt_path):
-    txt_path = "C:\\Users\\minju\\Desktop\\dj-stt\\s2t\\outputs\\recording_2nd.txt"
-    rtr = parseopen.main(txt_path)
+def llm_execute(context, text):
+    combined_text = context + text
+    rtr = parseopen.main(combined_text)
     print(rtr)
     return rtr
     
     
+
+# file: s2t/views.py
+import os
+from pathlib import Path
+from django.http import JsonResponse, HttpResponseBadRequest
+from django.views.decorators.csrf import csrf_exempt
+
+from dotenv import load_dotenv
+import azure.cognitiveservices.speech as speechsdk
+
+APP_DIR = Path(__file__).resolve().parent
+UPLOAD_DIR = APP_DIR / "uploads"
+UPLOAD_DIR.mkdir(exist_ok=True)
+
+def _azure_stt(audio_file_path: Path, language: str = "ko-KR") -> str:
+    load_dotenv()  # .env 읽기
+    speech_key = os.getenv("AZURE_SPEECH_KEY")
+    speech_region = os.getenv("AZURE_SPEECH_REGION")
+    
+    if not speech_key or not speech_region:
+        raise RuntimeError("AZURE_SPEECH_KEY/AZURE_SPEECH_REGION 미설정")
+
+    speech_config = speechsdk.SpeechConfig(subscription=speech_key, region=speech_region)
+    print(1)
+    speech_config.speech_recognition_language = language
+    print(2)
+    audio_config = speechsdk.audio.AudioConfig(filename=str(audio_file_path))
+    print(3)
+    recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config, audio_config=audio_config)
+    print(4)
+    result = recognizer.recognize_once()
+    print(5)
+
+    if result.reason == speechsdk.ResultReason.RecognizedSpeech:
+        return result.text
+    elif result.reason == speechsdk.ResultReason.NoMatch:
+        raise RuntimeError("인식 실패: NoMatch")
+    elif result.reason == speechsdk.ResultReason.Canceled:
+        cancellation = speechsdk.CancellationDetails(result)
+        raise RuntimeError(f"취소됨: {cancellation.reason}, {cancellation.error_details}")
+    raise RuntimeError(f"인식 실패: {result.reason}")
+
+@csrf_exempt  # 프론트가 다른 도메인이면 CSRF 예외 필요 (프로덕션에선 토큰/인증 설계 권장)
+def s2tExecute(request):
+    if request.method == "POST" and request.FILES.get("file"):
+        f = request.FILES["file"]
+        save_dir = Path(__file__).resolve().parent / "sample"
+        save_dir.mkdir(exist_ok=True)
+        save_path = save_dir / f.name
+        with open(save_path, "wb+") as dest:
+            for chunk in f.chunks():
+                dest.write(chunk)
+    print("캬캬캬", save_path)
+
+    text = _azure_stt(save_path, language=request.POST.get("lang", "ko-KR"))
+    print(text)
+    return HttpResponse(200)
+    return text
     
     
     
