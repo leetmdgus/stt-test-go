@@ -448,6 +448,8 @@ def to_wav_16k_mono_pcm(src_path: Path) -> Path:
 @csrf_exempt
 @api_view(['POST'])
 def counseling_start(request):
+    from openai import OpenAI
+    import os
     name = request.data.get('name')
     sex = request.data.get('sex')
     tendency = request.data.get('tendency')
@@ -458,19 +460,32 @@ def counseling_start(request):
     print("성향  : ", tendency)
     print("최근 정보  : ", latest_information)
     
-    if request.method == "POST" and request.FILES.get("file"):
-        f = request.FILES["file"]
-        save_dir = Path(__file__).resolve().parent / "sample"
-        save_dir.mkdir(exist_ok=True)
-        print("파일 이름:",f.name)
-        used_path = save_dir / f.name
-        save_path = to_wav_16k_mono_pcm(used_path)
-        with open(save_path, "wb+") as dest:
+    # if request.method == "POST" and request.FILES.get("file"):
+    #     f = request.FILES["file"]
+    #     save_dir = Path(__file__).resolve().parent / "sample"
+    #     save_dir.mkdir(exist_ok=True)
+    #     print("파일 이름:",f.name)
+    #     used_path = save_dir / f.name
+    #     save_path = to_wav_16k_mono_pcm(used_path)
+    #     with open(save_path, "wb+") as dest:
+    #         for chunk in f.chunks():
+    #             dest.write(chunk)
+    f = request.FILES["file"]      
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    save_dir = Path(__file__).resolve().parent / "sample"
+    used_path = save_dir / f.name
+    with open(used_path, "wb+") as dest:
             for chunk in f.chunks():
                 dest.write(chunk)
-    print("저장경로 : ", save_path)
-    content = _azure_stt(save_path, language=request.POST.get("lang", "ko-KR"))
-    print(content)
+    with open(used_path, "rb") as f:
+        resp = client.audio.transcriptions.create(
+            model="gpt-4o-transcribe",  # 또는 whisper-1, gpt-4o-mini-transcribe
+            file=f,
+            language="ko"
+        )
+    
+    content = print("Openai text", resp.text)
+    print("저장경로 : ", used_path)
     society = '사회 영역:'
     body = '신체 영역:'
     mental = '정신 영역:'
