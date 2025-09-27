@@ -531,8 +531,11 @@ def counseling_start(request):
     
     print('content : ', content)
     print('txt', json_data)
+    if content == None:
+        content = ""
     
     llm_text = llm_execute(json_data, content)
+
     print(llm_text)
     return JsonResponse({"message": llm_text})
     
@@ -541,8 +544,7 @@ def counseling_start(request):
     
 @csrf_exempt
 def llm_execute(context, text):
-    combined_text = context + text
-    rtr = parseopen.main(combined_text)
+    rtr = parseopen.generate_report(context, text)
     print(rtr)
     return rtr
     
