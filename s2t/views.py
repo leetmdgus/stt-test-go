@@ -493,7 +493,7 @@ def counseling_start(request):
     f = request.FILES["file"]      
     print("이거임",f)
     content = ''
-    if not f:
+    if f.size < 1000:
         # 파일이 없으면 빈 문자열 저장
         content = ""
     else: 
