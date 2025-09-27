@@ -27,3 +27,12 @@ class Checklist(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.q_category}"
+
+
+
+class M_UserInfo(models.Model):
+    m_name = models.CharField("지원사_이름", max_length=50)
+    name = models.CharField("이름", max_length=50)
+    sex = models.CharField("성별", max_length=50)
+    tendency = models.CharField("성향", max_length=50)
+    latest_information = models.CharField("최근정보", max_length=50)

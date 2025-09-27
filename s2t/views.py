@@ -25,7 +25,7 @@ from pathlib import Path
 from django.http import FileResponse, Http404
 from . import parse
 from . import parseopen
-from .models import UserInfo, OpenAITxt, Checklist
+from .models import UserInfo, OpenAITxt, Checklist, M_UserInfo
 # Create your views here.
 @api_view(['GET'])
 def index(request):
@@ -446,22 +446,26 @@ def to_wav_16k_mono_pcm(src_path: Path) -> Path:
         raise RuntimeError(f"ffmpeg 변환 실패:\n{proc.stderr.decode('utf-8', 'ignore')}")
     return dst_path
 
+
+count = 0
 @csrf_exempt
 @api_view(['POST'])
 def counseling_start(request):
     from openai import OpenAI
     import os
+    count += 1
     name = request.data.get('name')
     sex = request.data.get('sex')
     tendency = request.data.get('tendency')
     latest_information = request.data.get('meta_data')
-    obj = UserInfo(
-            name=name,
-            sex=sex,
-            tendency=tendency,
-            latest_information=latest_information
-        )
-    obj.save()
+    # obj = UserInfo(
+    #         name=name,
+    #         sex=sex,
+    #         tendency=tendency,
+    #         latest_information=latest_information
+    #     )
+    # obj.save()
+    print("상담사 이름 : ", count)
     print("이름  : ", name)
     print("성별  : ", sex)
     print("성향  : ", tendency)
@@ -480,11 +484,18 @@ def counseling_start(request):
     f = request.FILES["file"]      
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     save_dir = Path(__file__).resolve().parent / "sample"
-    used_path = save_dir / f.name
+    used_path = save_dir / f'{str(count)}_f.name'
     with open(used_path, "wb+") as dest:
             for chunk in f.chunks():
                 dest.write(chunk)
-                
+    obj = M_UserInfo(
+            m_name = str(count),
+            name=name,
+            sex=sex,
+            tendency=tendency,
+            latest_information=latest_information
+        )
+    obj.save()
     
     with open(used_path, "rb") as f:
         resp = client.audio.transcriptions.create(
