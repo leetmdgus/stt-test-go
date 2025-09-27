@@ -485,7 +485,7 @@ def counseling_start(request):
     f = request.FILES["file"]      
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     save_dir = Path(__file__).resolve().parent / "sample"
-    used_path = save_dir / f'{str(count)}_f.name'
+    used_path = save_dir / f'{str(count)}_{f.name}'
     with open(used_path, "wb+") as dest:
             for chunk in f.chunks():
                 dest.write(chunk)
