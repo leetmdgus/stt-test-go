@@ -440,6 +440,7 @@ def counseling_start(request):
         f = request.FILES["file"]
         save_dir = Path(__file__).resolve().parent / "sample"
         save_dir.mkdir(exist_ok=True)
+        print("파일 이름:",f.name)
         save_path = save_dir / f.name
         with open(save_path, "wb+") as dest:
             for chunk in f.chunks():
