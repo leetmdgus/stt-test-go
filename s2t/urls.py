@@ -21,4 +21,6 @@ from s2t import views
 urlpatterns = [
     path('', views.index),
     path('download_file/', views.download_file),
+    path('counseling_start/', views.counseling_start),
+    path('llm_execute/', views.llm_execute),
 ]

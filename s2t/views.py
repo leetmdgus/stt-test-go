@@ -20,11 +20,17 @@ import noisereduce as nr
 from pathlib import Path
 # faster-whisper
 from faster_whisper import WhisperModel
-
+from rest_framework.decorators import api_view, permission_classes
 from pathlib import Path
 from django.http import FileResponse, Http404
+from . import parse
+from . import parseopen
 # Create your views here.
+@api_view(['GET'])
 def index(request):
+    name = request.data.get('namdd')
+    print(name)
+    print(3)
     return HttpResponse("Communication start")
     
 
@@ -276,9 +282,9 @@ def check3():
     print("ffprobe:", shutil.which("ffprobe"))
 
 
-def s2tExecute(request):
+def s2tExecute(audio_name):
     APP_DIR = Path(__file__).resolve().parent  # s2t/ 를 가리킴
-    AUDIO_PATH = APP_DIR / "sample" / "recording.m4a"  # s2t/sample/recording.m4a
+    AUDIO_PATH = APP_DIR / "sample" / audio_name  # s2t/sample/recording.m4a
     # ========= User Configuration =========
     #AUDIO_PATH   = "sample/recording.m4a"   # 입력 오디오 경로(.m4a 포함)
     OUTDIR       = APP_DIR/"outputs"                 # 결과 저장 디렉토리
@@ -374,6 +380,7 @@ def s2tExecute(request):
     print(" -", out_txt)
     print(" -", out_srt)
     # print(" -", out_json)
+    return out_txt
 
 
 # s2tExecute(3)
@@ -401,3 +408,80 @@ def download_file(request):
                 dest.write(chunk)
         return JsonResponse({"message": f"업로드 성공: {f.name}"})
     return JsonResponse({"error": "파일이 없음"}, status=400)
+
+
+@csrf_exempt
+@api_view(['POST'])
+def counseling_start(request):
+    # name = request.data.get('name')
+    # sex = request.data.get('sex')
+    # tendency = request.data.get('tendency')
+    # latest_information = request.data.get('meta_data')
+    
+    # print("이름  : ", name)
+    # print("성별  : ", sex)
+    # print("성향  : ", tendency)
+    # print("최근 정보  : ", latest_information)
+    
+    if request.method == "POST" and request.FILES.get("file"):
+        f = request.FILES["file"]
+        save_dir = Path(__file__).resolve().parent / "sample"
+        save_dir.mkdir(exist_ok=True)
+        save_path = save_dir / f.name
+        with open(save_path, "wb+") as dest:
+            for chunk in f.chunks():
+                dest.write(chunk)
+        print("download complete")
+        rtr = s2tExecute(save_path) # txt파일 경로가 옴
+        print(rtr)
+        try:
+            with open(rtr, "r", encoding="utf-8") as f:
+                content = f.read()
+                print(content)
+        except FileNotFoundError:
+            print("파일을 찾을 수 없습니다:", rtr)
+        except Exception as e:
+            print("에러 발생:", e)
+    
+    # society = '사회 영역:'
+    # body = '신체 영역:'
+    # mental = '정신 영역:'
+    
+    
+    # dummy_d = ['society', 'body', 'mental']
+    # counseling_data = request.data.get('data')
+    # for i in dummy_d:
+    #     if i == 'society':
+    #         for j in counseling_data[i]:
+    #             society += j + '\n'
+    #             society += counseling_data[i][j] + '\n'
+    #     if i == 'body':
+    #         for j in counseling_data[i]:
+    #             body += j + '\n'
+    #             body += counseling_data[i][j] + '\n'
+    #     if i == 'mental':
+    #         for j in counseling_data[i]:
+    #             mental += j + '\n'
+    #             mental += counseling_data[i][j] + '\n'
+    # print("society",society)
+    # print("body",body)
+    # print("mental",mental)
+    # llm_text = s2tExecute(f.name)
+    return HttpResponse(200)
+    
+    
+    
+    
+@csrf_exempt
+def llm_execute(txt_path):
+    txt_path = "C:\\Users\\minju\\Desktop\\dj-stt\\s2t\\outputs\\recording_2nd.txt"
+    rtr = parseopen.main(txt_path)
+    print(rtr)
+    return HttpResponse(200)
+    
+    
+    
+    
+    
+    
+    
