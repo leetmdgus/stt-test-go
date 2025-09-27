@@ -31,13 +31,13 @@ ALLOWED_HOSTS = [env('STATIC_IP'),'localhost', '127.0.0.1']  # 개발용
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
-    "http://:5173",
+    "http://172.20.10.3:5173",
 ]
 CORS_ALLOWED_ORIGINS = [
-    "http://<프론트IP>:5173",
+    "http://localhost:5173",
+    "http://172.20.10.3:5173",
 ]
 CORS_ALLOW_CREDENTIALS = True  # 쿠키를 쓸 때만 True
-CSRF_TRUSTED_ORIGINS = ["http://172.20.10.3:5173"]
 
 # settings.py (개발에서만)
 SESSION_COOKIE_SECURE = False
@@ -70,9 +70,6 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "config.urls"
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-]
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
