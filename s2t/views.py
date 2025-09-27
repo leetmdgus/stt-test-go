@@ -488,14 +488,16 @@ def counseling_start(request):
     
     content = print("Openai text", resp.text)
     print("저장경로 : ", used_path)
-
-   
+    
+    raw = request.data.get("data")
+    
+    counseling_data = json.loads(raw)
+    print("상담 데이터 : ", counseling_data)
     json_data = dict()
     json_data['social'] = []
     json_data['physical'] = []
     json_data['mental'] = []
     dummy_d = ['society', 'body', 'mental']
-    counseling_data = request.data.get('data')
     print("상담 데이터", counseling_data)
     print("타입" , type(counseling_data))
     for i in dummy_d:
