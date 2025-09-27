@@ -422,6 +422,28 @@ def download_file(request):
         return JsonResponse({"message": f"업로드 성공: {f.name}"})
     return JsonResponse({"error": "파일이 없음"}, status=400)
 
+import subprocess
+from pathlib import Path
+
+def to_wav_16k_mono_pcm(src_path: Path) -> Path:
+    """
+    m4a/mp3 등 → wav(16kHz, mono, 16bit PCM)로 변환.
+    ffmpeg가 PATH에 있어야 합니다.
+    """
+    dst_path = src_path.with_suffix(".wav")
+    cmd = [
+        "ffmpeg", "-y",
+        "-i", str(src_path),
+        "-ac", "1",           # mono
+        "-ar", "16000",       # 16kHz
+        "-c:a", "pcm_s16le",  # 16bit PCM
+        str(dst_path),
+    ]
+    # 오류 메시지 확인을 위해 stderr 캡처
+    proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if proc.returncode != 0:
+        raise RuntimeError(f"ffmpeg 변환 실패:\n{proc.stderr.decode('utf-8', 'ignore')}")
+    return dst_path
 
 @csrf_exempt
 @api_view(['POST'])
@@ -441,7 +463,8 @@ def counseling_start(request):
         save_dir = Path(__file__).resolve().parent / "sample"
         save_dir.mkdir(exist_ok=True)
         print("파일 이름:",f.name)
-        save_path = save_dir / f.name
+        used_path = save_dir / f.name
+        save_path = to_wav_16k_mono_pcm(used_path)
         with open(save_path, "wb+") as dest:
             for chunk in f.chunks():
                 dest.write(chunk)
