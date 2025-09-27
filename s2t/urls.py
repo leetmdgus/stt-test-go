@@ -23,4 +23,5 @@ urlpatterns = [
     path('download_file/', views.download_file),
     path('counseling_start/', views.counseling_start),
     path('llm_execute/', views.llm_execute),
+    path('s2tExecute/', views.s2tExecute),
 ]

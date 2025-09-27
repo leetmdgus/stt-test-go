@@ -432,7 +432,8 @@ def counseling_start(request):
             for chunk in f.chunks():
                 dest.write(chunk)
         print("download complete")
-        rtr = s2tExecute(save_path) # txt파일 경로가 옴
+        print("파일명 : ", f.name)
+        rtr = s2tExecute(f.name) # txt파일 경로가 옴
         print(rtr)
         try:
             with open(rtr, "r", encoding="utf-8") as f:
