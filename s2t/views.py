@@ -295,6 +295,7 @@ def check3():
 
 
 def s2tExecute(audio_name):
+    print(audio_name, " 파일 실행 시작")
     APP_DIR = Path(__file__).resolve().parent  # s2t/ 를 가리킴
     AUDIO_PATH = APP_DIR / "sample" / audio_name  # s2t/sample/recording.m4a
     # ========= User Configuration =========
