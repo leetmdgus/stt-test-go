@@ -293,11 +293,11 @@ def check3():
     print("ffmpeg:", shutil.which("ffmpeg"))
     print("ffprobe:", shutil.which("ffprobe"))
 
-
+@csrf_exempt
 def s2tExecute(audio_name):
     print(audio_name, " 파일 실행 시작")
     APP_DIR = Path(__file__).resolve().parent  # s2t/ 를 가리킴
-    AUDIO_PATH = APP_DIR / "sample" / audio_name  # s2t/sample/recording.m4a
+    AUDIO_PATH = APP_DIR / "sample" / "recording.m4a"  # s2t/sample/recording.m4a
     # ========= User Configuration =========
     #AUDIO_PATH   = "sample/recording.m4a"   # 입력 오디오 경로(.m4a 포함)
     OUTDIR       = APP_DIR/"outputs"                 # 결과 저장 디렉토리
@@ -480,7 +480,7 @@ def counseling_start(request):
     print("society",society)
     print("body",body)
     print("mental",mental)
-    llm_text = s2tExecute(f.name)
+    llm_text = llm_execute(f.name)
     return HttpResponse(200)
     
     
@@ -491,7 +491,7 @@ def llm_execute(txt_path):
     txt_path = "C:\\Users\\minju\\Desktop\\dj-stt\\s2t\\outputs\\recording_2nd.txt"
     rtr = parseopen.main(txt_path)
     print(rtr)
-    return HttpResponse(200)
+    return rtr
     
     
     
