@@ -1,0 +1,1 @@
+web: gunicorn qr_maker.wsgi:application
