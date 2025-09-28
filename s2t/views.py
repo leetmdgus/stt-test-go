@@ -481,14 +481,6 @@ def counseling_start(request):
     #     with open(save_path, "wb+") as dest:
     #         for chunk in f.chunks():
     #             dest.write(chunk)
-    obj = M_UserInfo(
-            m_name = str(count),
-            name=name,
-            sex=sex,
-            tendency=tendency,
-            latest_information=latest_information
-        )
-    obj.save()
     f = request.FILES["file"]      
     print("이거임",f)
     content = ''
@@ -514,11 +506,7 @@ def counseling_start(request):
         print("Openai text", content)
         print("저장경로 : ", used_path)
         
-    obj1 = OpenAITxt(
-            name=name,
-            openai_txt=content,
-        )
-    obj1.save()
+
     raw = request.data.get("data")
     
     counseling_data = json.loads(raw)
@@ -538,12 +526,6 @@ def counseling_start(request):
                 tempt['score'] = int(counseling_data[i][j][-2])
                 tempt['answer'] = counseling_data[i][j][:-3]
                 json_data['social'].append(tempt)
-                obj2 = Checklist(
-                        name=name,
-                        q_category = '사회',
-                        question = tempt['question'],
-                        answer = tempt['answer'])
-                obj2.save()
                 
         if i == 'body':
             for j in counseling_data[i]:
@@ -552,12 +534,6 @@ def counseling_start(request):
                 tempt['score'] = int(counseling_data[i][j][-2])
                 tempt['answer'] = counseling_data[i][j][:-3]
                 json_data['physical'].append(tempt)
-                obj2 = Checklist(
-                        name=name,
-                        q_category = '신체',
-                        question = tempt['question'],
-                        answer = tempt['answer'])
-                obj2.save()
                 
         if i == 'mental':
             for j in counseling_data[i]:
@@ -566,22 +542,12 @@ def counseling_start(request):
                 tempt['score'] = int(counseling_data[i][j][-2])
                 tempt['answer'] = counseling_data[i][j][:-3]
                 json_data['mental'].append(tempt)
-                obj2 = Checklist(
-                        name=name,
-                        q_category = '정신',
-                        question = tempt['question'],
-                        answer = tempt['answer'])
-                obj2.save()
+
                                 
     print("society",json_data['social'])
     print("body",json_data['physical'])
     print("mental",json_data['mental'])
-    obj2 = Checklist(
-            name=name,
-            q_category = '',
-            question = '',
-            answer = '')
-    obj2.save()
+
     print('content : ', content)
     print('txt', json_data)
     if content == None:
