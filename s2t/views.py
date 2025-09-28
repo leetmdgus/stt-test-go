@@ -19,7 +19,6 @@ import noisereduce as nr
 
 from pathlib import Path
 # faster-whisper
-from faster_whisper import WhisperModel
 from rest_framework.decorators import api_view, permission_classes
 from pathlib import Path
 from django.http import FileResponse, Http404
@@ -613,7 +612,6 @@ from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 
 from dotenv import load_dotenv
-import azure.cognitiveservices.speech as speechsdk
 
 APP_DIR = Path(__file__).resolve().parent
 UPLOAD_DIR = APP_DIR / "uploads"
