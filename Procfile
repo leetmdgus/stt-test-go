@@ -1,1 +1,1 @@
-web: gunicorn qr_maker.wsgi:application
+web: gunicorn s2t.wsgi:application
